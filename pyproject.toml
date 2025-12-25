@@ -1,0 +1,6 @@
+[project]
+name = "mpyutils"
+version = "0.1.0"
+description = "Python decorators, Mixins, and various utility wrappers designed to simplify common programming patterns."
+readme = "README.md"
+requires-python = ">=3.11"
