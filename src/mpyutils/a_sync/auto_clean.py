@@ -61,7 +61,9 @@ class AutoCleanAiohttpMixin:
     _session: aiohttp.ClientSession | None = None
 
     def init_session(self, session: aiohttp.ClientSession):
+        assert self._session is None, "Session already initialized"
         self._session = session
+        global_clean_list.append(self._session)
 
     @property
     def session(self) -> aiohttp.ClientSession:
