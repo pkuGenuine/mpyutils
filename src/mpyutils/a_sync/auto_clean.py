@@ -22,15 +22,17 @@ def auto_clean(func: AsyncFn) -> AsyncFn:
         # TODO: per task support?
         assert not enter
         enter = True
-        res = await func(*args, **kwargs)
-        for clean_obj in global_clean_list:
-            try:
-                await clean_obj.close()
-            except Exception as e:
-                # TODO: switch to logging
-                print(f"Error cleaning up {clean_obj}: {e}")
-        enter = False
-        return res
+        try:
+            res = await func(*args, **kwargs)
+            return res
+        finally:
+            for clean_obj in global_clean_list:
+                try:
+                    await clean_obj.close()
+                except Exception as e:
+                    # TODO: switch to logging
+                    print(f"Error cleaning up {clean_obj}: {e}")
+            enter = False
 
     return cast(AsyncFn, wrapper)
 
