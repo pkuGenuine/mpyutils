@@ -5,44 +5,26 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
+from pydantic_settings.sources import InitSettingsSource
 
 
-class TomlSettingsSource(PydanticBaseSettingsSource):
+class TomlSettingsSource(InitSettingsSource):
     """Custom settings source that reads from TOML file."""
 
     def __init__(self, settings_cls: type[BaseSettings], toml_path: Path | None):
-        super().__init__(settings_cls)
         self.toml_path = toml_path
-        self._toml_data: dict[str, Any] = {}
+        toml_data = self._load_toml()
+        super().__init__(settings_cls, toml_data)
 
-    def get_field_value(
-        self, field: FieldInfo, field_name: str
-    ) -> tuple[Any, str, bool]:
-        """Get value for a field from TOML data."""
-        if field_name in self._toml_data:
-            return self._toml_data[field_name], field_name, False
-        return None, field_name, False
-
-    def __call__(self) -> dict[str, Any]:
-        """Load and return TOML file contents."""
+    def _load_toml(self) -> dict[str, Any]:
+        """Load TOML file contents."""
         if self.toml_path is None:
             return {}
-
         if not self.toml_path.exists():
             raise FileNotFoundError(f"Config file not found: {self.toml_path}")
-
         with open(self.toml_path, "rb") as f:
-            self._toml_data = tomllib.load(f)
-
-        return self._toml_data
-
-    def get_field_value_complex(
-        self, field: FieldInfo, field_name: str
-    ) -> tuple[Any, str, bool]:
-        """Handle complex/nested field values."""
-        return self.get_field_value(field, field_name)
+            return tomllib.load(f)
 
 
 class Settings(BaseSettings):
